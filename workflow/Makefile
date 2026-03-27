@@ -15,7 +15,6 @@ ifeq ($(CRE_DOCKER_BUILD_IMAGE),true)
 	mkdir -p wasm
 	bun cre-compile main.ts wasm/workflow.wasm
 else
-	@docker info > /dev/null 2>&1 || (echo "ERROR: Docker is not running. Please start Docker Desktop and try again." && exit 1)
 	docker build --platform=linux/amd64 --output type=local,dest="$(CURDIR)" .
 	@echo "Build complete. workflow.wasm is ready in $(CURDIR)/wasm"
 endif
