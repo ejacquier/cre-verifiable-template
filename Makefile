@@ -1,16 +1,24 @@
-.PHONY: build
+.PHONY: build lock
+
+# Authoritative Bun image digest version 1.3.5
+BUN_IMAGE = oven/bun@sha256:f48ca3e042de3c9da0afb25455414db376c873bf88f79ffb6f26aec82bdb6da2
 
 build:
 ifeq ($(CRE_DOCKER_BUILD_IMAGE),true)
-	# --- RUNNING INSIDE DOCKER ---
+	@if [ ! -f bun.lock ]; then \
+		echo "ERROR: bun.lock is missing."; \
+		echo "To ensure a reproducible toolchain, please run 'make lock' from:"; \
+		echo "  $(CURDIR)"; \
+		echo "If you are expecting to verify this workflow, it's possible verification will fail if the generated lock differs, instead ask the original author to publish their lock file."; \
+		exit 1; \
+	fi
 	mkdir -p wasm
 	bun cre-compile main.ts wasm/workflow.wasm
-
 else
-	# --- RUNNING ON THE HOST ---
-	# We enforce the platform and use --output to pull the contents 
-	# of the 'scratch' stage directly into the current directory.
-	docker build --platform=linux/amd64 --output type=local,dest=. .
-	
-	@echo "Build complete. workflow.wasm is ready on the host."
+	@docker info > /dev/null 2>&1 || (echo "ERROR: Docker is not running. Please start Docker Desktop and try again." && exit 1)
+	docker build --platform=linux/amd64 --output type=local,dest="$(CURDIR)" .
+	@echo "Build complete. workflow.wasm is ready in $(CURDIR)/wasm"
 endif
+
+lock:
+	docker build --platform=linux/amd64 -f Dockerfile.lock --output type=local,dest=$(CURDIR) .
