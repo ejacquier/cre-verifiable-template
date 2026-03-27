@@ -1,27 +1,106 @@
-# Hello World (TypeScript)
+# Verifiable Workflow Template (TypeScript)
 
-This template provides a blank TypeScript workflow example. It aims to give a starting point for writing a workflow from scratch and to get started with local simulation.
+A TypeScript workflow template with reproducible builds that work on both Windows and macOS. This template enables third-party verification of deployed workflows using the CRE CLI.
 
-Steps to run the example
+## Prerequisites
 
-## 1. Update .env file
+- [CRE CLI](https://github.com/smartcontractkit/cre-cli/releases) installed
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) running
+- [Bun](https://bun.sh/) (for local development)
 
-You need to add a private key to env file. This is specifically required if you want to simulate chain writes. For that to work the key should be valid and funded.
-If your workflow does not do any chain write then you can just put any dummy key as a private key. e.g.
+## Project Structure
+
 ```
-CRE_ETH_PRIVATE_KEY=0000000000000000000000000000000000000000000000000000000000000001
+.
+├── project.yaml
+├── secrets.yaml
+└── workflow/
+    ├── Dockerfile
+    ├── Makefile
+    ├── bun.lock
+    ├── config.production.json
+    ├── config.staging.json
+    ├── main.ts
+    ├── main.test.ts
+    ├── package.json
+    ├── tsconfig.json
+    └── workflow.yaml
 ```
 
-## 2. Install dependencies
+## Getting Started
+
+### 1. Install dependencies
+
 ```bash
+cd workflow
 bun install
 ```
 
-## 3. Simulate the workflow
-Run the command from <b>project root directory</b>
+### 2. Simulate the workflow
+
+Run from the **project root directory**:
 
 ```bash
-cre workflow simulate <path-to-workflow> --target=staging-settings
+cre workflow simulate workflow --target=staging-settings
 ```
 
-It is recommended to look into other existing examples to see how to write a workflow. You can generate them by running the `cre init` command.
+## Verifying a Workflow Build
+
+Workflow verification lets anyone independently confirm that a deployed workflow matches its source code. The `cre workflow hash` command computes the workflow hash locally and compares it against the onchain workflow ID.
+
+### Computing the workflow hash
+
+From the **project root directory**, run:
+
+```bash
+cre workflow hash workflow --public_key <DEPLOYER_ADDRESS> --target production-settings
+```
+
+Replace `<DEPLOYER_ADDRESS>` with the deployer's public address (e.g. `0xb0f2D38245dD6d397ebBDB5A814b753D56c30715`).
+
+Example output:
+
+```
+Compiling workflow...
+✓ Workflow compiled
+  Binary hash:   03c77e16354e5555f9a74e787f9a6aa0d939e9b8e4ddff06542b7867499c58ea
+  Config hash:   3bdaebcc2f639d77cb248242c1d01c8651f540cdbf423d26fe3128516fd225b6
+  Workflow hash: 001de36f9d689b57f2e4f1eaeda1db5e79f7991402e3611e13a5c930599c2297
+```
+
+The **Workflow hash** is the onchain workflow ID. If it matches the workflow ID observed onchain, the deployed workflow matches this source code.
+
+### For verifiers (third-party auditors)
+
+1. Install the [CRE CLI](https://github.com/smartcontractkit/cre-cli/releases). No login or deploy access is required.
+2. Clone or unzip the shared workflow repository.
+3. Run `cre workflow hash` as shown above, using the deployer's public address.
+4. Compare the `Workflow hash` output with the onchain workflow ID. A match confirms the deployed workflow is built from this source.
+
+### Generating the lockfile
+
+If `bun.lock` is missing, generate it before building:
+
+```bash
+cd workflow
+make lock
+```
+
+This runs the lockfile generation inside Docker to ensure consistency across platforms.
+
+## How Reproducible Builds Work
+
+The build process uses Docker to ensure identical output on any machine:
+
+1. `make build` on the host starts a Docker build (`linux/amd64`)
+2. Inside the container, `bun install --frozen-lockfile` installs exact dependencies from `bun.lock`
+3. The workflow is compiled to a WASM binary (`workflow.wasm`)
+4. The binary is exported back to the host
+
+Because the build runs inside a pinned Docker image with a locked dependency tree, the same source always produces the same binary hash.
+
+## Learn More
+
+- [Verifying Workflows](https://docs.chain.link/cre/guides/operations/verifying-workflows) - Full verification guide
+- [Deploying Workflows](https://docs.chain.link/cre/guides/operations/deploying-workflows)
+- [Building Consumer Contracts](https://docs.chain.link/cre/guides/workflow/using-evm-client/onchain-write/building-consumer-contracts)
