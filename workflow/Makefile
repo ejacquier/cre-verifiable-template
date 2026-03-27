@@ -1,8 +1,5 @@
 .PHONY: build lock
 
-# Authoritative Bun image digest version 1.3.5
-BUN_IMAGE = oven/bun@sha256:f48ca3e042de3c9da0afb25455414db376c873bf88f79ffb6f26aec82bdb6da2
-
 build:
 ifeq ($(CRE_DOCKER_BUILD_IMAGE),true)
 	@if [ ! -f bun.lock ]; then \

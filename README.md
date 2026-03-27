@@ -6,7 +6,6 @@ A TypeScript workflow template with reproducible builds that work on both Window
 
 - [CRE CLI](https://github.com/smartcontractkit/cre-cli/releases) installed
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) running
-- [Bun](https://bun.sh/) (for local development)
 
 ## Project Structure
 
@@ -29,14 +28,7 @@ A TypeScript workflow template with reproducible builds that work on both Window
 
 ## Getting Started
 
-### 1. Install dependencies
-
-```bash
-cd workflow
-bun install
-```
-
-### 2. Simulate the workflow
+### Simulate the workflow
 
 Run from the **project root directory**:
 
