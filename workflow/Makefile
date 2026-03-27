@@ -20,4 +20,4 @@ else
 endif
 
 lock:
-	docker build --platform=linux/amd64 -f Dockerfile.lock --output type=local,dest=$(CURDIR) .
+	docker build --platform=linux/amd64 -f Dockerfile.lock --output type=local,dest="$(CURDIR)" .
