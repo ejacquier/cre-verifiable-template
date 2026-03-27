@@ -12,10 +12,10 @@ ifeq ($(CRE_DOCKER_BUILD_IMAGE),true)
 	mkdir -p wasm
 	bun cre-compile main.ts wasm/workflow.wasm
 else
-	$(if $(wildcard package.json),,$(error package.json not found in workflow/. This file is required for the build))
-	$(if $(wildcard bun.lock),,$(error bun.lock not found in workflow/. Run 'make lock' to generate it or ask the workflow author to include their lockfile))
-	$(if $(wildcard Dockerfile),,$(error Dockerfile not found in workflow/. Restore it from the template))
-	$(if $(wildcard main.ts),,$(error main.ts not found in workflow/. The workflow entry point is missing))
+	$(if $(wildcard package.json),,$(error ERROR: package.json not found in workflow/. This file is required for the build))
+	$(if $(wildcard bun.lock),,$(error ERROR: bun.lock is missing. To ensure a reproducible toolchain, run 'make lock' from $(CURDIR). If you are expecting to verify this workflow, it is possible verification will fail if the generated lock differs, instead ask the original author to publish their lock file))
+	$(if $(wildcard Dockerfile),,$(error ERROR: Dockerfile not found in workflow/. Restore it from the template))
+	$(if $(wildcard main.ts),,$(error ERROR: main.ts not found in workflow/. The workflow entry point is missing))
 	docker build --platform=linux/amd64 --output type=local,dest="$(CURDIR)" .
 	@echo "Build complete. workflow.wasm is ready in $(CURDIR)/wasm"
 endif
